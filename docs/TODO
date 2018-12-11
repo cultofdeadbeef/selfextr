@@ -1,0 +1,5 @@
+TODO
+
+* drop privilages when writing to tempfiles as root
+* additional checks when creating files
+* add payload encryption w/ password

@@ -1,0 +1,12 @@
+12/9/18
+  Start, Commit and Release of Version 1.0
+
+12/10/18
+  Version 1.0.1
+  * Bugfixes / Removal of broken extra functions.
+  * Added md5 sum check of archive file and data.
+  * Dropping permissions to nobody when creating mktemp when run as root
+
+12/11/18
+  Version 1.1
+  * Cleaned up code and fixed broken functions. 
