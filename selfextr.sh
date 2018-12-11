@@ -47,7 +47,7 @@ useage(){
 print_help(){
   useage
   echo ""
-  echo "Linux Archive Self Extractor"
+  echo "Linux Archive Self Extractor (selfextr)"
   echo "Version $VERSION"
   echo ""
   echo "(c) 2018 Cult of Dead Beef"
@@ -70,6 +70,7 @@ print_help(){
   echo "		Only tar is supported!"
   echo ""
   echo "-f		Override archive software arguments. specify without \"-\""
+  echo "		Example: $0 -f xvf -i file.tar.gz"
   echo "		Use at your own risk!"
   echo ""
   echo "Header and footer files are bash compatible scripts that run"
@@ -87,8 +88,8 @@ print_help(){
   echo "and change to it, before it extracts the archive and run sudo \$TMP_DIR/install.sh"
   echo "after it has extracted the archive."
   echo ""
-  echo "\$TMP_DIR is a global script variable that is set when -r is used."
-  echo ""
+#  echo "\$TMP_DIR is a global script variable that is set when -r is used."
+#  echo ""
 }
 signfile(){
   # Sign file with gpg
@@ -101,22 +102,22 @@ if [ $USER_NAME == "root" ] ; then
     echo "Running script as root. WARNING."
   fi
 fi
-if [ DEBUG == 1 ] ; then echo "DEBUG: USER_NAME=$USER_NAME" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: USER_NAME=$USER_NAME" ; fi
 GPG=$(which gpg) # Location to gpg
-if [ DEBUG == 1 ] ; then echo "DEBUG: GPG=$GPG" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: GPG=$GPG" ; fi
 GPG_RECIPIENT=""
 INPUTFILE=""
 HEADERFILE=""
 FOOTERFILE=""
 MYYEAR=$(date +"%Y")
-if [ DEBUG == 1 ] ; then echo "DEBUG: MYYEAR=$MYYEAR" ; fi
-AUTHOR_NAME=$(awk -v user="$USER" -F":" 'user==$1{print $5}' /etc/passwd)
-if [ DEBUG == 1 ] ; then echo "DEBUG: AUTHOR_NAME=$AUTHOR_NAME" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: MYYEAR=$MYYEAR" ; fi
+AUTHOR_NAME=$(awk -v user="$USER" -F":" 'user==$1{print $5}' /etc/passwd | cut -d"," -f 1)
+if [ $DEBUG == 1 ] ; then echo "DEBUG: AUTHOR_NAME=$AUTHOR_NAME" ; fi
 if [ $IS_ROOT == "1" ] ; then
   if [ $VMODE == "1" ] ; then
     echo "Creating tempfiles as nobody since we are root."
   fi
-  if [ DEBUG == 1 ] ; then echo "DEBUG: Yikes! running the script as root. Add exploit code to next version. ;)" ; fi
+  if [ $DEBUG == 1 ] ; then echo "DEBUG: Yikes! running the script as root. Add exploit code to next version. ;)" ; fi
   TEMPFILE=$(su nobody -s /bin/sh -c mktemp)
   PAYLOAD=$(su nobody -s /bin/sh -c mktemp)
   if [ $VMODE == 1 ] ; then 
@@ -126,11 +127,11 @@ else
   TEMPFILE=$(mktemp)
   PAYLOAD=$(mktemp)
 fi
-if [ DEBUG == 1 ] ; then echo "DEBUG: TEMPFILE=$TEMPFILE" ; fi
-if [ DEBUG == 1 ] ; then echo "DEBUG: PAYLOAD=$PAYLOAD" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: TEMPFILE=$TEMPFILE" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: PAYLOAD=$PAYLOAD" ; fi
 MD5_FILE_SUM=0
 MD5_DATA_SUM=0
-while getopts 'o:i:t:b:a:s:hnve' OPTION ; do
+while getopts 'o:i:A:f:e:H:F:hnvsV' OPTION 2>&1; do
   case $OPTION in
     o)
       # Output file name
@@ -178,7 +179,6 @@ while getopts 'o:i:t:b:a:s:hnve' OPTION ; do
       GPG_RECIPIENT=${OPTARG}
       ;;
     \?)
-      echo "Invalid option: -$OPTARG" >&2
       exit 1
       ;;
     :)
@@ -272,7 +272,7 @@ if [ -z $HEADERFILE ] ; then
   fi
 fi
 if [ DEBUG == 1 ] ; then echo "ENCRYPTFILES = $ENCRYPTFILES" ; fi #debug
-echo "Creating $OUTFILE from source"
+echo "Building $OUTFILE"
 if [ VMODE == 1 ] ; then
   echo "Setting up payload."
   if [ $ENCRYPTFILES == 1 ] ; then
@@ -282,23 +282,28 @@ if [ VMODE == 1 ] ; then
     echo "Using base64 to encode files."
   fi
 fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: Checking if encrypt with gpg" ; fi
 if [ $ENCRYPTFILES == 1 ] ; then
   if [ $VMODE == 1 ] ; then
     echo "Encrypting $INPUTFILE to $PAYLOAD"
   fi
-    $GPG -e --output $PAYLOAD --armour $INPUTFILE
+  $GPG -e --output $PAYLOAD --armour $INPUTFILE
+  if [ $DEBUG == 1 ] ; then echo "DEBUG: encrypted with gpg" ; fi
 fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: Checking if base64 encoding." ; fi
 if [ $ENCRYPTFILES == 0 ] ; then
   if [ $VMODE == 1 ] ; then
     echo "base64 $INPUTFILE > $PAYLOAD"
   fi
   base64 $INPUTFILE > $PAYLOAD
+  if [ $DEBUG == 1 ] ; then echo "DEBUG: encoded with base64" ; fi
 fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: getting md5 sum of payload." ; fi
 MD5_DATA_SUM=$(cat $PAYLOAD | md5sum)
 if [ $VMODE == 1 ] ; then
   echo "Initializing $OUTFILE"
 fi
-if [ DEBUG == 1 ] ; then echo "DEBUG: TEMPFILE=$TEMPFILE" ; fi
+if [ $DEBUG == 1 ] ; then echo "DEBUG: TEMPFILE=$TEMPFILE" ; fi
 cat > $TEMPFILE <<EOF
 #!/bin/sh
 # Created with Linux Archive Self Extractor v1.0
@@ -368,7 +373,7 @@ if [ SIGNFILE == 1 ] ; then
   fi
   $GPG --sign --armour $OUTFILE
 fi
-echo "Cleaning up."
+if [ $DEBUG == 1 ] ; then echo "DEBUG: Cleaning temp files." ; fi
 if [ VMODE == 1 ] ; then
   echo "Deleting script temp file: $TEMPFILE"
 fi
