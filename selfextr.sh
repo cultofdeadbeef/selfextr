@@ -40,6 +40,7 @@ VERSION="1.1.2"
 IS_ROOT=0 # Check if run as root.
 useage(){
   # Display program usage.
+  echo "selfextr $VERSION"
   echo "Program usage: "
   echo "$0 -i <input tarfile> [-o <output file name>] [-e <gpg key id>]"
 }
