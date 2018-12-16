@@ -1,4 +1,4 @@
-Selfextr v1.1.2
+Selfextr v1.1.3
 
 Linux Self Extracting Archive creator
 
