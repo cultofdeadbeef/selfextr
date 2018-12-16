@@ -10,3 +10,7 @@
 12/11/18
   Version 1.1
   * Cleaned up code and fixed broken functions. 
+
+12/16/18
+  Version 1.1.3
+  * Added traps to exit function to ensure cleanup. 

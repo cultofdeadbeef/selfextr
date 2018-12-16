@@ -36,7 +36,7 @@ VMODE="0" # Set default verbose mode off.
 DEBUG="0" # Set debug mode on/off Default off
 # End user config.
 # Edit below at your own risk.
-VERSION="1.1.2"
+VERSION="1.1.3"
 IS_ROOT=0 # Check if run as root.
 useage(){
   # Display program usage.
@@ -95,6 +95,22 @@ signfile(){
   # Sign file with gpg
   echo "GPG Sign $SIGNFILENAME"
 }
+clean_up(){
+if [ $DEBUG == 1 ] ; then echo "DEBUG: Cleaning temp files." ; fi
+if [ VMODE == 1 ] ; then
+  echo "Deleting script temp file: $TEMPFILE"
+fi
+if [ -f $TEMPFILE ] ; then
+  rm -f $TEMPFILE
+fi
+if [ VMODE == 1 ] ; then
+  echo "Deleting payload temp file: $PAYLOAD"
+fi
+if [ -f $PAYLOAD ] ; then
+  rm -f $PAYLOAD
+fi
+}
+trap clean_up EXIT
 USER_NAME=$(whoami)
 if [ $USER_NAME == "root" ] ; then
   IS_ROOT=1
@@ -373,17 +389,8 @@ if [ SIGNFILE == 1 ] ; then
   fi
   $GPG --sign --armour $OUTFILE
 fi
-if [ $DEBUG == 1 ] ; then echo "DEBUG: Cleaning temp files." ; fi
-if [ VMODE == 1 ] ; then
-  echo "Deleting script temp file: $TEMPFILE"
+if [ -f $OUTFILE ] ; then
+  chmod 755 $OUTFILE
+else
+  echo "ERROR: $OUTFILE is missing?"
 fi
-if [ -f $TEMPFILE ] ; then
-  rm -f $TEMPFILE
-fi
-if [ VMODE == 1 ] ; then
-  echo "Deleting payload temp file: $PAYLOAD"
-fi
-if [ -f $PAYLOAD ] ; then
-  rm -f $PAYLOAD
-fi
-chmod 755 $OUTFILE
